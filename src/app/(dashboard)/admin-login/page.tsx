@@ -20,7 +20,7 @@ import { useNotify } from '../_hooks/use-notify'
 import { useRouter } from 'next/navigation'
 
 const Login = () => {
-    const { success } = useNotify()
+    const { success, error } = useNotify()
     const router = useRouter()
     const form = useForm<LoginFormData>({
         resolver: zodResolver(LoginSchema),
@@ -32,17 +32,20 @@ const Login = () => {
 
     const onSubmit = async (data: LoginFormData) => {
         try {
-            // هنا هينادي الـ Server Action بتاعك
-            console.log("Logging in with:", data);
             const res = await adminLoginAction(data)
-            console.log("🚀 ~ onSubmit ~ res:", res)
             if (res.success) {
                 success(`تم تسجيل الدخول بنجاح`)
                 router.push('/admin')
             }
 
+            if (!res.success) {
+                const er = res.error
+                error(er || 'حدث خطأ')
+            }
 
-        } catch (error) {
+
+        } catch {
+            error("حدث خطأ")
         }
     };
 
