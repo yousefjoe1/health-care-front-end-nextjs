@@ -1,3 +1,8 @@
+'use client';
+import { fetchData } from "@/app/(dashboard)/_actions/fetchData"
+import DeleteRecord from "@/app/(dashboard)/_components/shared/DeleteRecord";
+import ActionModal from "@/app/(dashboard)/_components/shared/modals/ActionModal";
+import { Staff } from "@/app/(dashboard)/_types/auth.types";
 import {
     Table,
     TableBody,
@@ -8,80 +13,61 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
+import { useQuery } from "@tanstack/react-query"
 
-const invoices = [
-    {
-        invoice: "INV001",
-        paymentStatus: "Paid",
-        totalAmount: "$250.00",
-        paymentMethod: "Credit Card",
-    },
-    {
-        invoice: "INV002",
-        paymentStatus: "Pending",
-        totalAmount: "$150.00",
-        paymentMethod: "PayPal",
-    },
-    {
-        invoice: "INV003",
-        paymentStatus: "Unpaid",
-        totalAmount: "$350.00",
-        paymentMethod: "Bank Transfer",
-    },
-    {
-        invoice: "INV004",
-        paymentStatus: "Paid",
-        totalAmount: "$450.00",
-        paymentMethod: "Credit Card",
-    },
-    {
-        invoice: "INV005",
-        paymentStatus: "Paid",
-        totalAmount: "$550.00",
-        paymentMethod: "PayPal",
-    },
-    {
-        invoice: "INV006",
-        paymentStatus: "Pending",
-        totalAmount: "$200.00",
-        paymentMethod: "Bank Transfer",
-    },
-    {
-        invoice: "INV007",
-        paymentStatus: "Unpaid",
-        totalAmount: "$300.00",
-        paymentMethod: "Credit Card",
-    },
-]
+
 
 export function StaffTable() {
+    const { data: staff, isError, isLoading } = useQuery({
+        queryKey: ['staff'], queryFn: async () => {
+            const res = await fetchData('staff')
+            return res
+        }
+    })
     return (
-        <Table>
-            <TableCaption>A list of your recent invoices.</TableCaption>
+        <Table className="mt-12 border">
+            <TableCaption>
+                {isLoading ? 'يتم تحديث البيانات' : 'بيانات الموظفين'}
+                {
+                    isError && 'حدث خطأ أثناء جلب البيانات'
+                }
+            </TableCaption>
             <TableHeader>
                 <TableRow>
-                    <TableHead>Invoice</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Method</TableHead>
-                    <TableHead className="">Amount</TableHead>
+                    <TableHead>عمليات</TableHead>
+                    <TableHead>الاسم</TableHead>
+                    <TableHead>النوع</TableHead>
+                    <TableHead>الهاتف</TableHead>
+                    <TableHead>الاميل</TableHead>
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {invoices.map((invoice) => (
-                    <TableRow key={invoice.invoice}>
-                        <TableCell className="font-medium">{invoice.invoice}</TableCell>
-                        <TableCell>{invoice.paymentStatus}</TableCell>
-                        <TableCell>{invoice.paymentMethod}</TableCell>
-                        <TableCell className="">{invoice.totalAmount}</TableCell>
+                {staff?.data?.data && staff?.data?.data?.map((user: Staff) => (
+                    <TableRow key={user.id}>
+                        <TableCell className="font-medium space-x-3 p-5">
+                            <ActionModal buttonName="مسح" >
+                                <DeleteRecord
+                                    url={`staff/delete/${user.id}`}
+                                    queryKey='staff'
+                                />
+                            </ActionModal>
+                            <ActionModal buttonName="تعديل" >
+                                form
+                            </ActionModal>
+                        </TableCell>
+                        <TableCell className="font-medium">{user.full_name}</TableCell>
+                        <TableCell className="font-medium">{user.role}</TableCell>
+                        <TableCell className="font-medium">{user.phone}</TableCell>
+                        <TableCell className="font-medium">{user.email}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
-            <TableFooter>
+            {/* <TableFooter>
                 <TableRow>
                     <TableCell colSpan={3}>Total</TableCell>
                     <TableCell className="">$2,500.00</TableCell>
                 </TableRow>
-            </TableFooter>
+            </TableFooter> */}
         </Table>
     )
 }

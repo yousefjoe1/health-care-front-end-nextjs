@@ -1,7 +1,5 @@
-// register action
 'use server'
 
-import { Staff } from "@/app/(dashboard)/_types/auth.types";
 import api from "@/app/(dashboard)/config/axios";
 import { AxiosError } from "axios";
 
@@ -12,17 +10,17 @@ interface ServerError {
 }
 
 
-export async function addStaffAction(data: Staff) {
+export async function deleteRecored(url: string) {
     try {
-        const response = await api.post<Staff>(`/staff/create-user`, data);
-
-
+        const response = await api.delete(`/${url}`);
         return {
             success: true,
             data: response.data,
         };
     } catch (error) {
+
         const err = error as AxiosError<ServerError>; // بنعرفه إن الـ data جواها ServerError
+
         return {
             success: false,
             error: err.response?.data?.message || 'حدث خطأ ما ...',

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const UserSchema = z.object({
+export const StaffSchema = z.object({
     full_name: z
         .string()
         .min(2, "الاسم يجب أن يكون حرفين على الأقل"),
@@ -20,7 +20,3 @@ export const UserSchema = z.object({
         // يمكنك إضافة regex للتأكد أنه أرقام فقط إذا أردت
         .regex(/^[0-9+]+$/, "رقم الهاتف يجب أن يحتوي على أرقام فقط"),
 });
-
-export type UserFormData = z.infer<typeof UserSchema>;
-
-export type ROLES = 'Admin' | 'staff'

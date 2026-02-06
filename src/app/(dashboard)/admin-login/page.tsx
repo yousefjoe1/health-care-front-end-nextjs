@@ -34,6 +34,7 @@ const Login = () => {
         try {
             const res = await adminLoginAction(data)
             if (res.success) {
+                localStorage.setItem('admin-staff-info', JSON.stringify(res.data))
                 success(`تم تسجيل الدخول بنجاح`)
                 router.push('/admin')
             }

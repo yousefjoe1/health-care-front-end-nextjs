@@ -8,6 +8,7 @@ import { cookies } from "next/headers";
 // adminLoginAction.ts
 import { AxiosError } from "axios";
 
+
 // هنعرف شكل الـ Error اللي جاي من السيرفر بتاعك
 interface ServerError {
     status: string;
@@ -22,10 +23,12 @@ export async function adminLoginAction(data: LoginFormData) {
 
         return {
             success: true,
-            data: response.data,
+            data: response.data.user,
         };
     } catch (error) {
+        console.log("🚀 ~ adminLoginAction ~ error:", error)
         const err = error as AxiosError<ServerError>; // بنعرفه إن الـ data جواها ServerError
+        console.log("🚀 ~ adminLoginAction ~ err:", err.response)
 
         return {
             success: false,

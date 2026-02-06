@@ -1,5 +1,6 @@
 
 
+import DashBoardHeader from "../_components/shared/DashBoardHeader.tsx/DashBoardHeader";
 import DashboardLinks from "../_components/shared/DashboardLinks";
 
 interface DashboardLayoutProps {
@@ -21,9 +22,7 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
 
                 <div className="flex-1 flex flex-col">
                     {/* هيدر داخلي للداشبورد */}
-                    <header className="h-16 border-b flex items-center px-6 bg-card">
-                        <h1 className="text-sm font-medium">أهلاً بك، Youssef</h1>
-                    </header>
+                    <DashBoardHeader />
 
                     {/* محتوى الصفحة المتغير */}
                     <main className="p-6 overflow-y-auto">

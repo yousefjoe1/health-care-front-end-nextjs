@@ -20,15 +20,17 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { UserFormData, UserSchema } from "../_lib";
+import { StaffSchema } from "../_validations";
 import { addStaffAction } from "../_actions/addStaff";
 import { useState } from "react";
 import { useNotify } from "@/app/(dashboard)/_hooks/use-notify";
+import { Staff } from "@/app/(dashboard)/_types/auth.types";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 export function AddStaffForm() {
     const { success, error } = useNotify()
-    const form = useForm<UserFormData>({
-        resolver: zodResolver(UserSchema),
+    const form = useForm<Staff>({
+        resolver: zodResolver(StaffSchema),
         defaultValues: {
             full_name: "",
             role: "",
@@ -38,26 +40,32 @@ export function AddStaffForm() {
         },
     });
 
-    const [loading, setLoading] = useState(false)
 
-    const onSubmit = async (values: UserFormData) => {
-        setLoading(true)
-        const res = await addStaffAction(values)
-        setLoading(false)
-        console.log("🚀 ~ onSubmit ~ res:", res)
-        if (res.success) {
-            success(`تم إضافة الموظف ${values.full_name} بنجاح`)
-        } else {
-            error(res.error)
-        }
+    const onSubmit = async (values: Staff) => {
+        mutate(values)
+        // const res = await addStaffAction(values)
     }
+
+    const queryClient = useQueryClient() // 1. استدعاء الـ Client
+    const { mutate, isPending } = useMutation({
+        mutationFn: addStaffAction,
+        onSuccess: (res) => {
+            console.log("🚀 ~ AddStaffForm ~ res:", res)
+            if (res.success) {
+                queryClient.invalidateQueries({ queryKey: ['staff'] })
+                success("تمت الإضافة")
+            } else {
+                error(res.error || '')
+            }
+        },
+    })
+
 
     return (
         <Form {...form}>
             <form
                 onSubmit={form.handleSubmit(onSubmit)}
-                className="space-y-6 max-w-xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-                dir="rtl" // لضبط اتجاه النص من اليمين لليسار
+                className="space-y-6 max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 shadow-lg rounded-2xl p-6 border"
             >
 
                 {/* الاسم الكامل */}
@@ -68,7 +76,7 @@ export function AddStaffForm() {
                         <FormItem>
                             <FormLabel>الاسم الكامل</FormLabel>
                             <FormControl>
-                                <Input placeholder="جون دو" {...field} />
+                                <Input placeholder="يوسف محمود" {...field} />
                             </FormControl>
                             <FormMessage />
                         </FormItem>
@@ -145,8 +153,8 @@ export function AddStaffForm() {
 
                 {/* زر الإرسال - ممتد على عرض الشبكة بالكامل */}
                 <div className="md:col-span-2 lg:col-span-3 mt-2">
-                    <Button disabled={loading} type="submit" className="w-full text-lg font-bold">
-                        {loading ? 'جاري ارسال البيانات ' : 'إرسال البيانات'}
+                    <Button disabled={isPending} type="submit" className="w-full text-lg font-bold">
+                        {isPending ? 'جاري ارسال البيانات ' : 'إرسال البيانات'}
                     </Button>
                 </div>
 

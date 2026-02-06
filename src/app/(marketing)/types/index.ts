@@ -34,3 +34,10 @@ export interface Sector {
     max_appointments: number; // 
     created_at: string; // 
 }
+
+export interface APIResponse<T> {
+    success: boolean;
+    data: T;
+    statusCode?: number;
+    message?: string
+}

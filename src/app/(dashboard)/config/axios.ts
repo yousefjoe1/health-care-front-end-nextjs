@@ -1,64 +1,40 @@
-import axios, {
-    AxiosInstance,
-    AxiosError,
-    InternalAxiosRequestConfig,
-    AxiosResponse
-} from "axios";
+import axios, { InternalAxiosRequestConfig } from "axios";
 
-// تعريف شكل البيانات المتوقع في حال وجود خطأ من السيرفر
-interface ApiError {
-    message?: string;
-    errors?: Record<string, string[]>;
-}
-
-const api: AxiosInstance = axios.create({
+const api = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api",
-    headers: {
-        "Content-Type": "application/json",
-    },
+    // دي أهم خاصية: بتخلي المتصفح يبعت الكوكيز (حتى الـ httpOnly) تلقائياً مع كل طلب
+    withCredentials: true,
 });
 
-/**
- * Request Interceptor
- */
-api.interceptors.request.use(
-    (config: InternalAxiosRequestConfig): InternalAxiosRequestConfig => {
-        if (typeof window !== "undefined") {
-            const token = localStorage.getItem("token");
-            if (token && config.headers) {
-                // استخدام النوع الآمن لإضافة التوكن
-                config.headers.Authorization = `Bearer ${token}`;
-            }
+api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
+    // لو الطلب طالع من السيرفر (Server Action / SSR)
+    if (typeof window === "undefined") {
+        const { cookies } = await import("next/headers");
+        const cookieStore = await cookies();
+        const token = cookieStore.get("admin-token")?.value;
+
+        if (token && config.headers) {
+            config.headers.Authorization = `Bearer ${token}`;
         }
-        return config;
-    },
-    (error: AxiosError): Promise<AxiosError> => {
-        return Promise.reject(error);
     }
-);
 
-/**
- * Response Interceptor
- */
+    // ملاحظة: في الكلينت (المتصفح)، إحنا مش محتاجين نكتب الـ Header بإيدنا
+    // لأن مع withCredentials: true، المتصفح بيبعت الكوكي لوحده في الـ request headers
+
+    return config;
+});
+
 api.interceptors.response.use(
-    (response: AxiosResponse): AxiosResponse => {
-        return response;
-    },
-    async (error: AxiosError<ApiError>): Promise<never> => {
-        // معالجة خطأ 401 (Unauthorized)
+    (response) => response,
+    async (error) => {
         if (error.response?.status === 401) {
+            // معالجة الـ 401 في الكلينت
             if (typeof window !== "undefined") {
-                localStorage.removeItem("token");
-                window.location.href = "/login";
+                // بما إننا مش هنعرف نمسح الـ httpOnly cookie من الجافا سكريبت
+                // هنكتفي بتوجيه المستخدم لصفحة اللوجين، وهناك الـ Server Action بتاع Logout يمسحها
+                window.location.href = "/admin-login";
             }
         }
-
-        // استخراج رسالة الخطأ بشكل آمن
-        const errorMessage = error.response?.data?.message || "حدث خطأ غير متوقع";
-
-        // يمكنك هنا إضافة Toast notification لإظهار الخطأ للمستخدم
-        // toast.error(errorMessage);
-
         return Promise.reject(error);
     }
 );

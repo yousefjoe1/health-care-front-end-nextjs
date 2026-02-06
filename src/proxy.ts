@@ -5,6 +5,7 @@ import { checkToken } from './app/(dashboard)/_actions/checkToken'
 export async function proxy(request: NextRequest) {
 
     const isAuth = await checkToken()
+    console.log("🚀 ~ proxy ~ isAuth:", isAuth)
 
     if (!isAuth.success) {
         return NextResponse.redirect(new URL('/admin-login', request.url))
@@ -16,5 +17,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: '/admin',
+    matcher: ['/admin/:path*']
 }
